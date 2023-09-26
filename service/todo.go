@@ -23,10 +23,25 @@ func NewTODOService(db *sql.DB) *TODOService {
 func (s *TODOService) CreateTODO(ctx context.Context, subject, description string) (*model.TODO, error) {
 	const (
 		insert  = `INSERT INTO todos(subject, description) VALUES(?, ?)`
-		confirm = `SELECT subject, description, created_at, updated_at FROM todos WHERE id = ?`
+		confirm = `SELECT id, subject, description, created_at, updated_at FROM todos WHERE id = ?`
 	)
-
-	return nil, nil
+	var result model.TODO
+	// 取り出し
+	res, err := s.db.Exec(insert, subject, description)
+	if err != nil {
+		return nil, err
+	}
+	// 最後のIDを取り出す
+	id, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	// 取り出したIDを使って、TODOを取り出す
+	err = s.db.QueryRow(confirm, id).Scan(&result.ID, &result.Subject, &result.Description, &result.CreatedAt, &result.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // ReadTODO reads TODOs on DB.
