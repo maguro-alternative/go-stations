@@ -7,7 +7,9 @@ import (
 )
 
 // A HealthzHandler implements health check endpoint.
-type HealthzHandler struct{}
+type HealthzHandler struct{
+	Message string `json:"message"`
+}
 
 // NewHealthzHandler returns HealthzHandler based http.Handler.
 func NewHealthzHandler() *HealthzHandler {
