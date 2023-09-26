@@ -1,5 +1,9 @@
 package model
 
+import (
+	"go/types"
+)
+
 type ErrNotFound struct {
-	error error
+	error types.Interface
 }
