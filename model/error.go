@@ -5,5 +5,5 @@ import (
 )
 
 type ErrNotFound struct {
-	error *types.Interface
+	Error *types.Interface
 }
