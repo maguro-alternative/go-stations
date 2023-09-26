@@ -1,5 +1,5 @@
 package model
 
-type ErrNotFound struct {
-	Error interface{error}
+type ErrNotFound interface {
+	error
 }
