@@ -21,7 +21,7 @@ type (
 	}
 	// A CreateTODOResponse expresses ...
 	CreateTODOResponse struct {
-		Items []TODO `json:"items"`
+		Items CreateTODORequest `json:"items"`
 	}
 
 	// A ReadTODORequest expresses ...
