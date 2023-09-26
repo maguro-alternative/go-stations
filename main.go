@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"net/http"
 
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
@@ -51,6 +52,9 @@ func realMain() error {
 	mux := router.NewRouter(todoDB)
 
 	// TODO: サーバーをlistenする
+	// NOTE: ポート番号は上記のport変数を使用すること
+	// NOTE: エラーが発生した場合はlog.Fatalでログを出力すること
+	log.Fatal(http.ListenAndServe(port, mux))
 
 	return nil
 }
