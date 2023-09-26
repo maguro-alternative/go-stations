@@ -21,7 +21,7 @@ func NewHealthzHandler() *HealthzHandler {
 // ServeHTTP implements http.Handler interface.
 func (h *HealthzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(&model.HealthzResponse{
-		Message: "ok",
+		Message: "OK",
 	})
 	if err != nil {
 		log.Println(err)
