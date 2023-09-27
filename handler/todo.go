@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/TechBowl-japan/go-stations/model"
 	"github.com/TechBowl-japan/go-stations/service"
@@ -47,6 +48,44 @@ func (h *TODOHandler) Delete(ctx context.Context, req *model.DeleteTODORequest) 
 
 func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var todo model.TODO
+
+	if r.Method == http.MethodGet {
+		query := r.URL.Query()
+		readtodo := model.ReadTODORequest{
+			PrevID: 0,
+			Size:   5,
+		}
+		if query.Get("prev_id") != "" {
+			prevID, err := strconv.Atoi(query.Get("prev_id"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			readtodo.PrevID = int64(prevID)
+		}
+		if query.Get("size") != "" {
+			size, err := strconv.Atoi(query.Get("size"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			readtodo.Size = int64(size)
+		}
+
+		ctx := r.Context()
+		res, err := h.svc.ReadTODO(ctx, readtodo.PrevID, readtodo.Size)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(&model.ReadTODOResponse{
+			TODOs: res,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 
 	if r.Method == http.MethodPost {
 		err := json.NewDecoder(r.Body).Decode(&todo)
