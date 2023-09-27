@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -111,6 +112,7 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	if r.Method == http.MethodPut {
 		err := json.NewDecoder(r.Body).Decode(&todo)
 		if err != nil {
@@ -120,7 +122,7 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "subject is empty", http.StatusBadRequest)
 			return
 		}
-		res,err := h.svc.UpdateTODO(r.Context(), todo.ID, todo.Subject, todo.Description)
+		res, err := h.svc.UpdateTODO(r.Context(), todo.ID, todo.Subject, todo.Description)
 		if err != nil {
 			if (err == &model.ErrNotFound{}) {
 				http.Error(w, err.Error(), http.StatusNotFound)
@@ -134,4 +136,27 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	if r.Method == http.MethodDelete {
+		deleteTodo := &model.DeleteTODORequest{}
+		err := json.NewDecoder(r.Body).Decode(&deleteTodo)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(deleteTodo.IDs) == 0 || deleteTodo.IDs == nil {
+			http.Error(w, "ids is empty", http.StatusBadRequest)
+			return
+		}
+		err = h.svc.DeleteTODO(r.Context(), deleteTodo.IDs)
+		fmt.Println(err)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		err = json.NewEncoder(w).Encode(&deleteTodo)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 }
