@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	"github.com/TechBowl-japan/go-stations/model"
 )
@@ -72,7 +71,7 @@ func (s *TODOService) UpdateTODO(ctx context.Context, id int64, subject, descrip
 		return nil, err
 	}
 	if affected == 0 {
-		return nil, model.ErrNotFound(errors.New("TODO is not found"))
+		return nil, &model.ErrNotFound{}
 	}
 
 	var result model.TODO
