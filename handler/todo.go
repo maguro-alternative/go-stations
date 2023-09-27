@@ -53,24 +53,46 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		if todo.Subject == "" {
+			http.Error(w, "subject is empty", http.StatusBadRequest)
+			return
+		}
+
+		ctx := r.Context()
+		res, err := h.svc.CreateTODO(ctx, todo.Subject, todo.Description)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(&model.CreateTODOResponse{
+			TODO: *res,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+	if r.Method == http.MethodPut {
+		err := json.NewDecoder(r.Body).Decode(&todo)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		if todo.ID == 0 || todo.Subject == "" {
+			http.Error(w, "subject is empty", http.StatusBadRequest)
+			return
+		}
+		res,err := h.svc.UpdateTODO(r.Context(), todo.ID, todo.Subject, todo.Description)
+		if err != nil {
+			if (err == &model.ErrNotFound{}) {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(&model.UpdateTODOResponse{
+			TODO: *res,
+		})
 	}
 
-	if todo.Subject == "" {
-		http.Error(w, "subject is empty", http.StatusBadRequest)
-		return
-	}
-
-	ctx := r.Context()
-	res, err := h.svc.CreateTODO(ctx, todo.Subject, todo.Description)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(&model.CreateTODOResponse{
-		TODO: *res,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 }
