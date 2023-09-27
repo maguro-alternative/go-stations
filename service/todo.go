@@ -74,7 +74,7 @@ func (s *TODOService) UpdateTODO(ctx context.Context, id int64, subject, descrip
 		return nil, &model.ErrNotFound{}
 	}
 
-	var result model.TODO
+	result := model.TODO{ID: id}
 	err = s.db.QueryRowContext(ctx, confirm, id).Scan(&result.Subject, &result.Description, &result.CreatedAt, &result.UpdatedAt)
 	if err != nil {
 		return nil, err
