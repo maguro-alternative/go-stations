@@ -1,5 +1,5 @@
 package model
 
 type ErrNotFound interface {
-	error
+	Error() string
 }
