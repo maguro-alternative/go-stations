@@ -6,6 +6,8 @@ import (
 	"time"
 	"net/http"
 
+	"github.com/joho/godotenv"
+
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
 )
@@ -18,6 +20,12 @@ func main() {
 }
 
 func realMain() error {
+	var err error
+	err = godotenv.Load(".env")
+	if err != nil {
+		log.Fatalln("main: failed to load .env, err =", err)
+		return err
+	}
 	// config values
 	const (
 		defaultPort   = ":8080"
@@ -35,15 +43,16 @@ func realMain() error {
 	}
 
 	// set time zone
-	var err error
 	time.Local, err = time.LoadLocation("Asia/Tokyo")
 	if err != nil {
+		log.Fatalln("main: failed to set time zone, err =", err)
 		return err
 	}
 
 	// set up sqlite3
 	todoDB, err := db.NewDB(dbPath)
 	if err != nil {
+		log.Fatalln("main: failed to set up sqlite3, err =", err)
 		return err
 	}
 	defer todoDB.Close()

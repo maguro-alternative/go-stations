@@ -5,7 +5,10 @@ import (
 	"net/http"
 
 	"github.com/TechBowl-japan/go-stations/handler"
+	"github.com/TechBowl-japan/go-stations/handler/middleware"
 	"github.com/TechBowl-japan/go-stations/service"
+
+	"github.com/justinas/alice"
 )
 
 func NewRouter(todoDB *sql.DB) *http.ServeMux {
@@ -14,7 +17,9 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 
 	// register routes
 	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", handler.NewHealthzHandler().ServeHTTP)
-	mux.HandleFunc("/todos", handler.NewTODOHandler(todoService).ServeHTTP)
+	middleChain := alice.New(middleware.Recovery)
+	mux.Handle("/healthz", middleChain.Then(handler.NewHealthzHandler()))
+	mux.Handle("/todos", middleChain.Then(handler.NewTODOHandler(todoService)))
+	mux.Handle("/do-panic", middleChain.Then(handler.NewDoPanicHandler()))
 	return mux
 }
