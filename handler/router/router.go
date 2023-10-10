@@ -17,7 +17,11 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 
 	// register routes
 	mux := http.NewServeMux()
-	middleChain := alice.New(middleware.Recovery)
+	middleChain := alice.New(
+		middleware.Recovery,
+		middleware.GetOSHandler,
+		middleware.GetLog,
+	)
 	mux.Handle("/healthz", middleChain.Then(handler.NewHealthzHandler()))
 	mux.Handle("/todos", middleChain.Then(handler.NewTODOHandler(todoService)))
 	mux.Handle("/do-panic", middleChain.Then(handler.NewDoPanicHandler()))
