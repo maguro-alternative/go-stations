@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
-	"os"
-	"time"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -60,10 +62,36 @@ func realMain() error {
 	// NOTE: 新しいエンドポイントの登録はrouter.NewRouterの内部で行うようにする
 	mux := router.NewRouter(todoDB)
 
+	ctx := context.Background()
+	srv := &http.Server{
+		Addr: port,
+		Handler: mux,
+	}
+
+	go func () {
+		err := srv.ListenAndServe()
+		if err != nil {
+			log.Fatalln("main: failed to ListenAndServe, err =", err)
+		}
+	}()
+
+	// Ctrl+Cを受け取るためのチャンネル
+	sc := make(chan os.Signal, 1)
+	// Ctrl+Cを受け取る
+	signal.Notify(sc, os.Interrupt)
+	<-sc //プログラムが終了しないようロック
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	// サーバーをシャットダウンする
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalln("main: failed to shutdown, err =", err)
+	}
+
 	// TODO: サーバーをlistenする
 	// NOTE: ポート番号は上記のport変数を使用すること
 	// NOTE: エラーが発生した場合はlog.Fatalでログを出力すること
-	log.Fatal(http.ListenAndServe(port, mux))
 
 	return nil
 }
